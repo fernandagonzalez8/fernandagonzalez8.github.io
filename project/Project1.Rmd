@@ -1,0 +1,109 @@
+---
+title: "Project"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE, fig.align = "center", warning = F, message = F,
+tidy=TRUE, tidy.opts=list(width.cutoff=60), R.options=list(max.print=100))
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+
+```{r cars}
+#Packages used 
+library(tidyverse)
+library(fivethirtyeight)
+library(pastecs)
+library(Hmisc)
+library(dplyr)
+
+#Introduction and Data Sets
+data2013 <-read.csv("data2013.csv")
+data2014 <-read.csv("data2014.csv")
+#The two datasets I chose are the top 50 passing leaders for the 2013 and 2014 NFL season. The variables are similar in that they include the rank, player's name, team they played for, yards gained by passing, passing touchdowns, quarterback rating, etc. These data sets were acquired from a Pro-Football Reference website that had passing leader statistics for each year. I chose these data sets because ever since I started going out with my boyfriend, I became interested in the sport and have learned a lot about it. 
+
+#Q2: Joining/Merging 
+joinedbyrank <- data2013 %>% left_join(data2014, by = "Rk")
+joinedbyteam <- data2013 %>% left_join(data2014, by = "Team")
+joinedbyplayer <- data2013 %>% left_join(data2014, by = "Player")
+#I joined the two data sets containing data from 2013 and 2014 by using the left_join() function with "Rk" or each players rank number being the common variable as well as Teams. I chose to do a left_join instead of a full_join because left_join() adds the rows that correspond to the second data set and allowed me to keep all of my variables. It allowed me to have the two years next to each other in order to conduct statistical analyses. 
+
+#Question 3: Wrangling 
+#Using Filter 
+joinedbyrank %>% filter (Rk == "1")
+joinedbyrank %>% filter (Rk == "23")
+joinedbyteam %>% filter (Team == "DAL")
+joinedbyrank %>% filter(str_detect(Team.x, "DAL"))
+joinedbyrank %>% filter(str_detect(Team.y, "DAL"))
+
+#Using Arrange 
+joinedbyrank %>% arrange(desc(Yds.x))
+joinedbyrank %>% arrange(desc(Yds.y))
+
+#Using Select 
+joinedbyteam %>% select(Team, Yds.x, Yds.y, QBR.x, QBR.y)
+joinedbyteam %>% select(Team, Yds.x, Yds.y, TD.x, TD.y)
+joinedbyplayer %>% select(Player, Yds.x, Yds.y, QBR.x, QBR.y)
+
+#Using Mutate 
+joinedbyrank %>% mutate(Rk_cat = case_when(Rk <= 10 ~ "Top 10", Rk >= 40 ~ "Bottom 10"))
+
+#Using summarize and group by 
+by_TD <- group_by(joinedbyrank, TD.x)
+summarise(by_TD, Throwing = mean(TD.y, na.rm = T))
+
+#Q3 (b): Creating Summary Statistics 
+joinedbyrank %>% summarise_all(n_distinct)
+joinedbyrank %>% summarise_all(mean)
+joinedbyrank %>% summarise_if(is.numeric, sd, na.rm = T)
+joinedbyrank %>% summarise_if(is.numeric, var, na.rm = T)
+joinedbyrank %>% summarise_if(is.numeric, quantile, na.rm = T)
+joinedbyrank %>% summarise_if(is.numeric, min, na.rm = T)
+joinedbyrank %>% summarise_if(is.numeric, max, na.rm = T)
+joinedbyrank %>% summarise(cor(TD.x, TD.y, use = "pair"))
+
+#For the wrangling portion, I began by using all six core dplyr functions to gain specific outputs in regards to the functions I used. The filter() function was very useful to determine what the rankings were for all available players and what teams they played for. The select() function allowed me to look at numerical statistics, such as yards, touchdowns, and QBR.  To compute the summary statistics, I used the summarise_if() function to determine mean, standard deviation, variation, quantile, min and max statistics. I found summarise_if(quantile) to be a helpful tool in order to determine the spread of statistics across a data set. I was able to determine the correlation between touchdown percentage from 2013 vs 2014 using the last sumarise(cor) functions.
+
+#Q4: Visualizations 
+statstotal<- select(joinedbyteam, Rk.x, Yds.x,TD.x, QBR.x, Rk.y, Yds.y,TD.y, QBR.y)
+statstotal %>% select_if(is.numeric) %>% cor(use = "pair")
+cormat <- statstotal %>% select_if(is.numeric) %>% cor(use = "pair")
+tidycor <- cormat %>% as.data.frame %>% rownames_to_column("Variable1") %>% pivot_longer(-1, names_to = "Variable2", values_to = "correlation")
+
+tidycor %>% ggplot(aes(Variable1, Variable2, fill = correlation)) + geom_tile() + scale_fill_gradient2(low = "blue", mid ="orange", high = "red") + geom_text(aes(label = round(correlation, 2)), color = "black", size = 2) + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + coord_fixed()
+
+#The correlation heatmap shown allows for the reader to visualize correlation patterns depending on the variables from 2013 and 2014.The heatmap is spit in half by a diagnonal line with a correlation of 1 since the same variables are being compared from 2013 and 2014.
+
+ggplot(joinedbyrank, aes(x = Rk, y = Yds.x)) + geom_bar(stat = "summary", position = "dodge") + geom_errorbar(stat = "summary", position = "dodge")
+#The plot above shows all 50 players from the 2013 season and are ordered from the #1 ranked player to the #50 ranked player on the x-axis. On the y-axis, are the number of yards gained by passing. As seen from the plot, the lowest ranked players (ex: 1) have the most yards gained by passing while the highest ranked players on the right have much less yards gained by passing. 
+
+ggplot(joinedbyrank, aes(Player.x)) + geom_bar(aes(y = TD.x, fill = Player.x), stat = "summary", fun = mean) + theme(axis.text = element_text(angle = 45, hjust = 1), legend.position = "none")
+#The plot above shows the touchdowns for eadch player during the 2013 season. Unlike the previous plot, this plot shows the individual players' name on the x-axis and compares touchdowns instead of yards gained by passing. 
+
+ggplot(joinedbyrank, aes(Player.y)) + geom_bar(aes(y = TD.y, fill = Player.y), stat = "summary", fun = mean) + theme(axis.text = element_text(angle = 45, hjust = 1), legend.position = "none")
+
+ggplot(data = joinedbyrank, aes(x= Rk, y = QBR.x)) + geom_point(size = 3, aes(color = Rk)) + xlab ("Player Ranking") + ylab("QBR") + labs(color = "Rk") + scale_color_gradient(low = "blue", high = "red")
+
+#The scatterplot shown shows the correlations between the correlation between ESPN Total Quaterback Rating and Player Ranking for the 2013 season. I chose these variables to show how critical the Total Quaterback Rating correlates with ranking. As seen from the plot, a correlation is present between QBR (Quaterback Rating) and Player Ranking. 
+
+#Q5: Dimensionality
+library(cluster)
+clust_dat <- select(joinedbyrank, Yds.x,TD.x, 
+                    QBR.x) %>% scale()
+sil_width <- vector()
+
+
+
+```
+
+
+
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

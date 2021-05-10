@@ -1,0 +1,9 @@
+---
+title: 'Python and R'
+author: Fernanda Gonzalez
+date: '2021-05-09'
+slug: ''
+categories: []
+tags: []
+description: ''
+---
