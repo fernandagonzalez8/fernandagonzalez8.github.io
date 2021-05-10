@@ -1,0 +1,31 @@
+---
+title: 'Python and R'
+author: Fernanda Gonzalez
+date: '2021-05-09'
+slug: ''
+categories: []
+tags: []
+description: ''
+
+---
+
+Reticulate Works!
+Let's imagine that you are doing an assignment and the only problem on this homework is to get the reticulate package to work. You then load the reticulate package. And then you make a funny thing because why not. 
+```{r}
+library(reticulate)
+something<-"Hook"
+```
+
+
+You also have to put some python thing in to prove that the reticulate package works.But look at that, you print it out and it’s a fun little sentence!
+
+```{python}
+cool="Em"
+print(r.something,cool)
+```
+
+
+
+You kind of wish you could do something cooler but you couldn’t figure out how to import python packages. Below is an image that provides another example. 
+![](/post/2021-05-09-_files/projectpic.png)
+
