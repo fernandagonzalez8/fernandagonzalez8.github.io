@@ -13,7 +13,9 @@
       <pubDate>Sun, 09 May 2021 00:00:00 +0000</pubDate>
       
       <guid>/post/2021/05/09/python-and-r/</guid>
-      <description></description>
+      <description>Reticulate Works Let’s imagine that you are doing an assignment and the only problem on this homework is to get the reticulate package to work. You then load the reticulate package. And then you make a funny thing because why not.
+library(reticulate) something&amp;lt;-“Hook”
+You also have to put some python thing in to prove that the reticulate package works.But look at that, you print it out and it’s a fun little sentence!</description>
     </item>
     
     <item>
